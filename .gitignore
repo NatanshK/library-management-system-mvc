@@ -1,3 +1,4 @@
 .env
 DEVLOG.md
 golang.md
+.DS_Store
