@@ -54,12 +54,12 @@ func ApproveCheckout(transactionID int, bookID int) error {
 
 	updateTxQuery := `
 		UPDATE transactions 
-		SET status = 'borrowed', checkout_time = ?, due_date = ? 
-		WHERE id = ? AND status = 'checkout_requested'
+		SET status = 'checkout_accepted', checkout_time = ?, due_date = ? 
+		WHERE transaction_id = ? AND status = 'checkout_requested'
 	`
 	txResult, err := tx.Exec(updateTxQuery, now, dueDate, transactionID)
 	if err != nil {
-		tx.Rollback() // rollback if it crashes in between
+		tx.Rollback()
 		return err
 	}
 
@@ -94,12 +94,12 @@ func GetUserHistory(userID int) ([]UserHistoryDTO, error) {
 
 	query := `
 		SELECT 
-			t.id, b.title, b.author, t.status, 
+			t.transaction_id, b.title, b.author, t.status, 
 			t.checkout_time, t.checkin_time, t.due_date, t.fine_amount
 		FROM transactions t
 		INNER JOIN books b ON t.book_id = b.id
 		WHERE t.user_id = ?
-		ORDER BY t.id DESC
+		ORDER BY t.transaction_id DESC
 	`
 
 	rows, err := config.DB.Query(query, userID)
@@ -136,12 +136,12 @@ func GetPendingRequests() ([]AdminQueueDTO, error) {
 
 	query := `
 		SELECT 
-			t.id, u.username, u.email, b.title, t.status
+			t.transaction_id, u.username, u.email, b.title, t.status
 		FROM transactions t
 		INNER JOIN users u ON t.user_id = u.id
 		INNER JOIN books b ON t.book_id = b.id
-		WHERE t.status IN ('checkout_requested', 'return_requested')
-		ORDER BY t.id ASC
+		WHERE t.status IN ('checkout_requested', 'checkin_requested')
+		ORDER BY t.transaction_id ASC
 	`
 
 	rows, err := config.DB.Query(query)

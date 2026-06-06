@@ -3,46 +3,28 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"library-management-system-mvc/config"
-	"library-management-system-mvc/models"
+	"library-management-system-mvc/controllers"
 )
 
 func main() {
-	fmt.Println("Booting up Library Management System...")
-
+	// 1. Connect to the database
 	config.ConnectDB()
 
-	newUser := models.User{
-		Username:      "student_01",
-		Password:      "SuperSecretPassword123!",
-		Email:         "student@university.edu",
-		Role:          "client",
-		RequestStatus: "not_requested",
-	}
+	// 2. Auth Routes
+	http.HandleFunc("/api/register", controllers.Register)
+	http.HandleFunc("/api/login", controllers.Login)
 
-	fmt.Println("\n--- Testing Data Insertion ---")
-	fmt.Printf("Attempting to register user: %s\n", newUser.Email)
+	// 3. Book Routes (Currently Unprotected)
+	// 4. Transaction Routes
+	http.HandleFunc("/api/transactions/request", controllers.RequestCheckout)
+	http.HandleFunc("/api/transactions/approve", controllers.ApproveCheckout)
+	http.HandleFunc("/api/transactions/history", controllers.GetUserHistory)
+	http.HandleFunc("/api/transactions/queue", controllers.GetAdminQueue)
 
-	err := models.CreateUser(&newUser)
-	if err != nil {
-
-		log.Printf("Failed to create user: %v\n", err)
-	} else {
-		fmt.Println("User successfully created and secured in MySQL!")
-	}
-
-	fmt.Println("\n--- Testing Data Retrieval ---")
-
-	fetchedUser, err := models.GetUserByEmail("student@university.edu")
-	if err != nil {
-		log.Fatalf("Failed to fetch user: %v", err)
-	}
-
-	fmt.Println("User found in database!")
-	fmt.Printf("ID: %d\n", fetchedUser.ID)
-	fmt.Printf("Username: %s\n", fetchedUser.Username)
-	fmt.Printf("Role: %s\n", fetchedUser.Role)
-	fmt.Printf("Stored Hash: %s...\n", fetchedUser.Password[:15]) // Print just the first 15 chars
-	fmt.Printf("Stored Salt: %s\n", fetchedUser.Salt)
+	// 4. Start the server
+	fmt.Println("Server is running on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
