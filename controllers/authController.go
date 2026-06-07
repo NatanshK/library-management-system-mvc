@@ -66,7 +66,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateToken(user.ID, user.Email)
+	token, err := utils.GenerateToken(user.ID, user.Email, user.Role)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate session token")
 		return

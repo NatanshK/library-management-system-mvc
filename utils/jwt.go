@@ -11,16 +11,18 @@ var jwtKey = []byte("my_super_secret_library_key_123")
 type Claims struct {
 	UserID int    `json:"user_id"`
 	Email  string `json:"email"`
+	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID int, email string) (string, error) {
+func GenerateToken(userID int, email string, role string) (string, error) {
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &Claims{
 		UserID: userID,
 		Email:  email,
+		Role:   role, // 3. We assign the passed role to the struct
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},

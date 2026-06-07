@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"library-management-system-mvc/models"
 	"library-management-system-mvc/utils"
-	"log"
+
+	//"log"
 	"net/http"
 	"strconv"
 )
@@ -82,7 +83,7 @@ func GetUserHistory(w http.ResponseWriter, r *http.Request) {
 func GetAdminQueue(w http.ResponseWriter, r *http.Request) {
 	queue, err := models.GetPendingRequests()
 	if err != nil {
-		log.Println("ADMIN QUEUE DATABASE REJECTION REASON:", err)
+		// log.Println("ADMIN QUEUE DATABASE REJECTION REASON:", err)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve admin queue")
 		return
 	}
