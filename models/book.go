@@ -56,7 +56,6 @@ func GetBooks(searchTerm string) ([]Book, error) {
 		return nil, err
 	}
 
-	//Ensure the connection is released back to the pool when done
 	defer rows.Close()
 
 	for rows.Next() {

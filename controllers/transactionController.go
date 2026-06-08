@@ -94,3 +94,88 @@ func GetAdminQueue(w http.ResponseWriter, r *http.Request) {
 
 	utils.RespondWithJSON(w, http.StatusOK, queue)
 }
+
+func RequestCheckin(w http.ResponseWriter, r *http.Request) {
+	var req TransactionRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	err = models.RequestCheckin(req.TransactionID, req.UserID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Check-in requested successfully. Waiting for Admin approval.",
+	})
+}
+
+func ApproveCheckin(w http.ResponseWriter, r *http.Request) {
+	var req TransactionRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	fineAmount, err := models.ApproveCheckin(req.TransactionID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message":     "Check-in approved. Book returned to inventory.",
+		"fine_amount": fineAmount,
+	})
+}
+
+func RejectCheckout(w http.ResponseWriter, r *http.Request) {
+	var req TransactionRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	err = models.RejectCheckout(req.TransactionID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Checkout explicitly rejected. Transaction closed.",
+	})
+}
+
+func RejectCheckin(w http.ResponseWriter, r *http.Request) {
+	var req TransactionRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	err = models.RejectCheckin(req.TransactionID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Check-in rejected. State reverted to checkout_accepted.",
+	})
+}

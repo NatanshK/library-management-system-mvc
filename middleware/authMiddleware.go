@@ -2,12 +2,11 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var jwtKey = []byte("my_super_secret_library_key_123")
 
 // Middleware to require authentication for protected routes
 func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
@@ -21,7 +20,7 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
 		if err != nil || !token.Valid {
@@ -45,7 +44,7 @@ func RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
 		if err != nil || !token.Valid {

@@ -1,12 +1,11 @@
 package utils
 
 import (
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var jwtKey = []byte("my_super_secret_library_key_123")
 
 type Claims struct {
 	UserID int    `json:"user_id"`
@@ -16,7 +15,7 @@ type Claims struct {
 }
 
 func GenerateToken(userID int, email string, role string) (string, error) {
-
+	jwtKey := []byte(os.Getenv("JWT_SECRET"))
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &Claims{

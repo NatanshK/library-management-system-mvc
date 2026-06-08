@@ -15,6 +15,10 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
+type RoleRequest struct {
+	UserID int `json:"user_id"`
+}
+
 func Register(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 
@@ -73,4 +77,56 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"token": token})
+}
+
+func RequestPromotion(w http.ResponseWriter, r *http.Request) {
+	var req RoleRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := models.RequestAdminRole(req.UserID); err != nil {
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Admin promotion requested successfully. Pending review.",
+	})
+}
+
+func ApprovePromotion(w http.ResponseWriter, r *http.Request) {
+	var req RoleRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := models.ApproveAdminRole(req.UserID); err != nil {
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, map[string]string{
+		"message": "Promotion approved. User is now an admin.",
+	})
+}
+
+func GetPendingPromotions(w http.ResponseWriter, r *http.Request) {
+	queue, err := models.GetPendingAdmins()
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to retrieve HR queue")
+		return
+	}
+
+	if queue == nil {
+		queue = []models.User{}
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, queue)
 }
